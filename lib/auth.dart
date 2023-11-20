@@ -1,33 +1,45 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
-class Auth {
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:chat_app_firebase/pages/login_page.dart';
 
-  User? get currentUser => _firebaseAuth.currentUser;
 
-  Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
+class AuthController extends GetxController {
+  static AuthController instance = Get.find();
 
-  Future<void> signInWithEmailAndPassword({
-    required String email,
-    required String password,
-  }) async {
-    await _firebaseAuth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+  late Rx<User?> _user;
+  FirebaseAuth auth = FirebaseAuth.instance;
+
+  @override
+  void onReady() {
+    super.onReady();
+    _user = Rx<User?>(auth.currentUser);
+    // user notifier
+    _user.bindStream(auth.userChanges());
+    ever(_user, _initialScreen);
   }
 
-  Future<void> createUserWithEmailAndPassword({
-    required String email,
-    required String password,
-  }) async {
-    await _firebaseAuth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+  _initialScreen(User? user) {
+    if (user == null) {
+      print("login page");
+      Get.offAll(() => LoginPage());
+    } 
   }
 
-  Future<void> signOut() async {
-    await _firebaseAuth.signOut(); 
+  void register(String email, password) {
+    try {
+      auth.createUserWithEmailAndPassword(email: email, password: password);
+    } catch (e) {
+      Get.snackbar(
+        "About User",
+        "User messaage",
+        snackPosition: SnackPosition.BOTTOM,
+        titleText: Text(
+          "Account creation failed",
+          style: TextStyle(color: Colors.white),
+        ),
+      );
+    }
   }
 }
