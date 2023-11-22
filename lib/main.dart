@@ -2,6 +2,7 @@ import 'package:chat_app_firebase/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'clipper.dart';
 import 'firebase_options.dart';
 import 'package:get/get.dart';
 import 'package:chat_app_firebase/pages/login_page.dart';
@@ -10,7 +11,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-  ).then((value) => Get.put(AuthController()));
+  );
+  Get.put(AuthController());
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -25,7 +27,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.red,
