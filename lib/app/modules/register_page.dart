@@ -1,12 +1,17 @@
+import 'package:chat_app_firebase/app/controllers/auth_controller.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../utils/clipper.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    var emailControlller = TextEditingController();
+    var passwordControlller = TextEditingController();
+
     List images = ["g.png", "t.png", "f.png"];
 
     double w = Get.size.width;
@@ -20,23 +25,8 @@ class RegisterPage extends StatelessWidget {
           child: Column(
             children: [
               Container(
-                width: w,
-                height: h * 0.3,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                      image: AssetImage("assets/img/loginimg.jpg"),
-                      fit: BoxFit.cover),
-                ),
-                child: Column(children: [
-                  SizedBox(
-                    height: h * 0.09,
-                  ),
-                  CircleAvatar(
-                    backgroundColor: Colors.white54,
-                    radius: 60,
-                    backgroundImage: AssetImage("assets/img/profile.png"),
-                  )
-                ]),
+                height: 230,
+                child: MyWaveClipper(),
               ),
               Container(
                 margin: const EdgeInsets.only(left: 20, right: 20),
@@ -44,6 +34,14 @@ class RegisterPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      "Sign Up",
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[500],
+                      ),
+                    ),
                     SizedBox(
                       height: 50,
                     ),
@@ -59,6 +57,7 @@ class RegisterPage extends StatelessWidget {
                                 color: Colors.grey.withOpacity(0.2))
                           ]),
                       child: TextField(
+                        controller: emailControlller,
                         style: TextStyle(fontSize: 14),
                         decoration: InputDecoration(
                           hintText: "Email",
@@ -90,6 +89,8 @@ class RegisterPage extends StatelessWidget {
                                 color: Colors.grey.withOpacity(0.2))
                           ]),
                       child: TextField(
+                        controller: passwordControlller,
+                        obscureText: true,
                         style: TextStyle(fontSize: 14),
                         decoration: InputDecoration(
                           hintText: "Password",
@@ -115,27 +116,33 @@ class RegisterPage extends StatelessWidget {
               SizedBox(
                 height: 70,
               ),
-              Container(
-                width: w * 0.5,
-                height: h * 0.08,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  image: DecorationImage(
-                      image: AssetImage("assets/img/loginbtn.png"),
-                      fit: BoxFit.cover),
-                ),
-                child: Center(
-                  child: Text(
-                    "Sign up",
-                    style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
+              GestureDetector(
+                onTap: () {
+                  AuthController.instance.register(emailControlller.text.trim(),
+                      passwordControlller.text.trim());
+                },
+                child: Container(
+                  width: w * 0.5,
+                  height: h * 0.08,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30),
+                    image: DecorationImage(
+                        image: AssetImage("assets/img/loginbtn.png"),
+                        fit: BoxFit.cover),
+                  ),
+                  child: Center(
+                    child: Text(
+                      "Sign up",
+                      style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
                   ),
                 ),
               ),
               SizedBox(
-                height: 10,
+                height: 30,
               ),
               RichText(
                   text: TextSpan(

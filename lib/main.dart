@@ -1,11 +1,10 @@
-import 'package:chat_app_firebase/auth.dart';
+import 'package:chat_app_firebase/app/controllers/auth_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
-import 'clipper.dart';
-import 'firebase_options.dart';
+import 'app/utils/firebase_options.dart';
 import 'package:get/get.dart';
-import 'package:chat_app_firebase/pages/login_page.dart';
+import 'package:chat_app_firebase/app/modules/login/login_view.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +31,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.red,
       ),
-      home: LoginPage(),
+      home: LoginView(),
     );
   }
 }
