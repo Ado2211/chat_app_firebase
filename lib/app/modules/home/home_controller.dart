@@ -27,7 +27,7 @@ class HomeController extends GetxController {
         .doc(chat_id)
         .collection("chat")
         .where("isRead", isEqualTo: false)
-        .where("penerima", isEqualTo: email)
+        .where("posiljaoc", isEqualTo: email)
         .get();
 
     updateStatusChat.docs.forEach((element) async {

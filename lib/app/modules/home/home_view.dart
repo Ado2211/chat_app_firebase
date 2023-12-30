@@ -1,61 +1,51 @@
 
+import 'package:chat_app_firebase/app/modules/auth/auth_controller.dart';
+import 'package:chat_app_firebase/app/modules/home/home_controller.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../controllers/auth_controller.dart';
-
-class HomePage extends StatelessWidget {
-  String? email;
-
-  HomePage({Key? key, required this.email}) : super(key: key);
-
+class ChatListWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    double w = Get.size.width;
-    double h = Get.size.height;
+    return GetBuilder<HomeController>(
+      init: HomeController(), // Inicijalizacija kontrolera
+      builder: (homeController) {
+        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: homeController.chatsStream(AuthController.instance.user.value.email!), // Zamijenite s pravim emailom korisnika
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Center(child: Text('Nema dostupnih razgovora.'));
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Greška: ${snapshot.error}'));
+            }
 
-    return Scaffold(
-      body: Column(children: [
-        Text(
-          "Wellcome",
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[500],
-          ),
-        ),
-        Text(
-          email!,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[500],
-          ),
-        ),
-        GestureDetector(
-          onTap: () {
-            AuthController.instance.logOut();
+            var listDocsChats = snapshot.data!.docs;
+            return ListView.builder(
+              itemCount: listDocsChats.length,
+              itemBuilder: (context, index) {
+                var chatData = listDocsChats[index].data();
+                return ListTile(
+                  title: Text(chatData['name'] ?? ''),
+                  subtitle: Text(chatData['lastMessage'] ?? ''),
+                  onTap: () {
+                    // Navigacija na detalje razgovora
+                    String chatId = listDocsChats[index].id;
+                    String friendEmail = chatData['friendEmail'];
+                    homeController.goToChatRoom(
+                      chatId,
+                      AuthController.instance.user.value.email!,
+                      friendEmail,
+                    );
+                  },
+                );
+              },
+            );
           },
-          child: Container(
-            width: w * 0.5,
-            height: h * 0.08,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              image: DecorationImage(
-                  image: AssetImage("assets/img/loginbtn.png"),
-                  fit: BoxFit.cover),
-            ),
-            child: Center(
-              child: Text(
-                "Sign out",
-                style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              ),
-            ),
-          ),
-        ),
-      ]),
+        );
+      },
     );
   }
 }
