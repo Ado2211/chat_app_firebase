@@ -1,5 +1,5 @@
-import 'package:chat_app_firebase/app/controllers/auth_controller.dart';
-import 'package:chat_app_firebase/app/modules/register_page.dart';
+import 'package:chat_app_firebase/app/modules/auth/auth_controller.dart';
+import 'package:chat_app_firebase/app/modules/auth/register/register_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -173,7 +173,7 @@ class LoginView extends GetView<LoginController> {
                             fontSize: 16,
                             fontWeight: FontWeight.bold),
                         recognizer: TapGestureRecognizer()
-                          ..onTap = () => Get.to(() => RegisterPage()))
+                          ..onTap = () => Get.to(() => RegisterView()))
                   ],
                 ),
               )

@@ -1,5 +1,6 @@
 
 import 'package:chat_app_firebase/app/routes/app_pages.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -10,15 +11,15 @@ import 'package:chat_app_firebase/app/models/users_model.dart';
 class AuthController extends GetxController {
   static AuthController instance = Get.find();
 
-  late Rxn<User> _user;
-  FirebaseAuth auth = FirebaseAuth.instance;
-
-  var user = UsersModel().obs;
+  late Rxn<User?> _user;
+ final FirebaseAuth auth = FirebaseAuth.instance;
+final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+ 
 
   @override
   void onReady() {
     super.onReady();
-    _user = Rxn<User>(auth.currentUser);
+    _user = Rxn<User?>(auth.currentUser);
 
     _user.bindStream(auth.userChanges());
     ever(_user, _initialScreen);
@@ -33,15 +34,20 @@ class AuthController extends GetxController {
     }
   }
 
-  void register(String email, String password) async {
+ Future<void> register(String email, String password) async {
     try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential = await auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
       if (userCredential.user != null) {
+  
+        await _firestore.collection('users').doc(userCredential.user!.uid).set({
+          'email': email,
+         
+        });
+
         Get.snackbar('Uspjeh', 'Registracija uspješna');
       }
     } catch (e) {
