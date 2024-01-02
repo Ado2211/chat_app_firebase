@@ -1,49 +1,60 @@
+import 'package:chat_app_firebase/app/modules/chat/chat_view.dart';
+import 'package:chat_app_firebase/app/routes/app_pages.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
-
-
 class HomeController extends GetxController {
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> chatsStream(String email) {
-    return firestore
-        .collection('users')
-        .doc(email)
-        .collection("chats")
-        .orderBy("lastTime", descending: true)
-        .snapshots();
+  Future<void> addFriend(String friendEmail) async {
+    try {
+      User? currentUser = _auth.currentUser;
+
+      if (currentUser != null) {
+        QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
+            .collection('users')
+            .where('email', isEqualTo: friendEmail)
+            .get();
+
+        if (snapshot.docs.isNotEmpty) {
+          String friendUid = snapshot.docs.first.id;
+
+          await _firestore
+              .collection('users')
+              .doc(currentUser.uid)
+              .collection('friends')
+              .doc(friendUid)
+              .set({'email': friendEmail});
+
+          Get.snackbar('Uspjeh', 'Prijatelj uspješno dodan');
+
+          openChatRoom(friendUid); // Ovdje otvaramo chat s prijateljem
+        } else {
+          Get.snackbar('Greška', 'Korisnik sa zadatim emailom ne postoji');
+        }
+      }
+    } catch (e) {
+      Get.snackbar('Greška', 'Greška prilikom dodavanja prijatelja: $e');
+    }
   }
 
-  Stream<DocumentSnapshot<Map<String, dynamic>>> friendStream(String email) {
-    return firestore.collection('users').doc(email).snapshots();
+  Stream<QuerySnapshot<Map<String, dynamic>>> getFriends() {
+    User? currentUser = _auth.currentUser;
+
+    if (currentUser != null) {
+      return _firestore
+          .collection('users')
+          .doc(currentUser.uid)
+          .collection('friends')
+          .snapshots();
+    }
+
+    return Stream.empty();
   }
 
-  void goToChatRoom(String chat_id, String email, String friendEmail) async {
-    CollectionReference chats = firestore.collection('chats');
-    CollectionReference users = firestore.collection('users');
-
-    final updateStatusChat = await chats
-        .doc(chat_id)
-        .collection("chat")
-        .where("isRead", isEqualTo: false)
-        .where("posiljaoc", isEqualTo: email)
-        .get();
-
-    updateStatusChat.docs.forEach((element) async {
-      await chats
-          .doc(chat_id)
-          .collection("chat")
-          .doc(element.id)
-          .update({"isRead": true});
-    });
-
-    await users
-        .doc(email)
-        .collection("chats")
-        .doc(chat_id)
-        .update({"total_unread": 0});
-
-   
-  }
+  void openChatRoom(String friendUid) {
+  Get.to(ChatRoomView(friendUid: friendUid));
+}
 }

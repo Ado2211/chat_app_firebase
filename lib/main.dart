@@ -1,14 +1,12 @@
 import 'package:chat_app_firebase/app/modules/auth/auth_controller.dart';
-import 'package:chat_app_firebase/app/modules/chat/chat_binding.dart';
-import 'package:chat_app_firebase/app/modules/home/home_binding.dart';
-import 'package:chat_app_firebase/app/modules/home/home_controller.dart';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'app/routes/app_pages.dart';
 import 'app/utils/firebase_options.dart';
 import 'package:get/get.dart';
-import 'package:chat_app_firebase/app/modules/auth/login/login_view.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
