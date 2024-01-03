@@ -1,21 +1,25 @@
 import 'package:chat_app_firebase/app/modules/chat/chat_controller.dart';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ChatRoomView extends StatelessWidget {
   final ChatRoomController controller = Get.put(ChatRoomController());
-  final TextEditingController messageController = TextEditingController();
-  final String friendUid;
+  final messageController = TextEditingController();
+  final String chatId;
+  final String friendEmail;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  
 
-  ChatRoomView({required this.friendUid});
+  ChatRoomView({Key? key, required this.chatId, required this.friendEmail}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    String? currentUser = _auth.currentUser.toString();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat sa prijateljem'),
+        title: Text('Chat s prijateljem'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -23,13 +27,12 @@ class ChatRoomView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: controller.getMessages(friendUid),
+              child: StreamBuilder<QuerySnapshot>(
+                stream: controller.getMessages(chatId), // Use chatId for getting messages
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
-                  } else if (!snapshot.hasData ||
-                      snapshot.data!.docs.isEmpty) {
+                  } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return Center(child: Text('Nema poruka.'));
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Greška: ${snapshot.error}'));
@@ -40,7 +43,7 @@ class ChatRoomView extends StatelessWidget {
                     reverse: true,
                     itemCount: messagesList.length,
                     itemBuilder: (context, index) {
-                      var messageData = messagesList[index].data();
+                      var messageData = messagesList[index].data() as Map<String, dynamic>;
                       return ListTile(
                         title: Text(messageData['message'] ?? ''),
                       );
@@ -63,7 +66,7 @@ class ChatRoomView extends StatelessWidget {
                   onPressed: () {
                     String message = messageController.text.trim();
                     if (message.isNotEmpty) {
-                      controller.sendMessage(message, friendUid);
+                      controller.sendMessage(chatId, currentUser, message);
                       messageController.clear();
                     }
                   },

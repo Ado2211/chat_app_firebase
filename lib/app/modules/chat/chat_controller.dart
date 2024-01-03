@@ -6,48 +6,24 @@ class ChatRoomController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  void sendMessage(String message, String friendUid) async {
-    try {
-      User? currentUser = _auth.currentUser;
+  void sendMessage(String chatId, String senderEmail, String messageContent) async {
+  CollectionReference chats = FirebaseFirestore.instance.collection('chats');
 
-      if (currentUser != null) {
-        await _firestore
-            .collection('chats')
-            .doc(currentUser.uid)
-            .collection('messages')
-            .add({
-          'message': message,
-          'senderUid': currentUser.uid,
-          'timestamp': DateTime.now(),
-        });
+  await chats.doc(chatId).collection('chat').add({
+    'sender': senderEmail,
+    'message': messageContent,
+    'timestamp': DateTime.now(),
+    'isRead': false,
+  });
+}
 
-        await _firestore
-            .collection('chats')
-            .doc(friendUid)
-            .collection('messages')
-            .add({
-          'message': message,
-          'senderUid': currentUser.uid,
-          'timestamp': DateTime.now(),
-        });
-      }
-    } catch (e) {
-      print('Greška prilikom slanja poruke: $e');
-    }
-  }
+Stream<QuerySnapshot> getMessages(String chatId) {
+  CollectionReference chats = FirebaseFirestore.instance.collection('chats');
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> getMessages(String friendUid) {
-    User? currentUser = _auth.currentUser;
-
-    if (currentUser != null) {
-      return _firestore
-          .collection('chats')
-          .doc(currentUser.uid)
-          .collection('messages')
-          .orderBy('timestamp', descending: true)
-          .snapshots();
-    }
-
-    return Stream.empty();
-  }
+  return chats
+      .doc(chatId)
+      .collection('chat')
+      .orderBy('timestamp', descending: true)
+      .snapshots();
+}
 }
