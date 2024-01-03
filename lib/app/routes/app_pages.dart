@@ -35,12 +35,7 @@ class AppPages {
       page: () => LoginView(),
       binding: LoginBinding(),
     ),
-    GetPage(
-      name: _Paths.CHAT_ROOM,
-      page: () =>
-          ChatRoomView(friendUid: ''), 
-      binding: ChatRoomBinding(),
-    ),
+    
     GetPage(
       name: _Paths.SEARCH,
       page: () => SearchWidget(),

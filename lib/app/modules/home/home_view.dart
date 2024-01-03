@@ -1,13 +1,18 @@
-
+import 'package:chat_app_firebase/app/modules/auth/auth_controller.dart';
 import 'package:chat_app_firebase/app/modules/home/home_controller.dart';
-
+// Change the import path if needed
+import 'package:chat_app_firebase/app/routes/app_pages.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HomeView extends StatelessWidget {
+  final authC = Get.find<AuthController>();
   final HomeController controller = Get.put(HomeController());
   final TextEditingController friendEmailController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -37,28 +42,24 @@ class HomeView extends StatelessWidget {
             ),
             SizedBox(height: 20),
             Expanded(
-              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: controller.getFriends(),
+              child: StreamBuilder<List<String>>(
+                stream: controller.getFriendsByEmail(authC.auth.currentUser!.email!),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
-                  } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return Center(child: Text('Nema dostupnih prijatelja.'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(child: Text('Nema prijatelja.'));
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Greška: ${snapshot.error}'));
                   }
 
-                  var friendsList = snapshot.data!.docs;
+                  // Prikaz liste prijatelja
                   return ListView.builder(
-                    itemCount: friendsList.length,
+                    itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
-                      var friendData = friendsList[index].data();
                       return ListTile(
-                        title: Text(friendData['email'] ?? ''),
-                        onTap: () {
-                         String friendUid = snapshot.data!.docs.first.id;
-                            controller.openChatRoom(friendUid);
-                        },
+                        title: Text(snapshot.data![index]),
+                        // treba dodati go to chat room
                       );
                     },
                   );
