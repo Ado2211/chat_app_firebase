@@ -1,9 +1,5 @@
 import 'package:chat_app_firebase/app/modules/auth/auth_controller.dart';
 import 'package:chat_app_firebase/app/modules/home/home_controller.dart';
-// Change the import path if needed
-import 'package:chat_app_firebase/app/routes/app_pages.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -11,14 +7,37 @@ class HomeView extends StatelessWidget {
   final authC = Get.find<AuthController>();
   final HomeController controller = Get.put(HomeController());
   final TextEditingController friendEmailController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Prijatelji'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Prijatelji'),
+            IconButton(
+              icon: Icon(Icons.exit_to_app), // Ikona za odjavu
+              onPressed: () {
+                // Logika za odjavu ili navigacija na stranicu za odjavu
+              },
+            ),
+          ],
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 240, 162, 88),
+                Color.fromARGB(255, 210, 58, 152),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: [0.0, 1.2],
+              tileMode: TileMode.clamp,
+            ),
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -28,8 +47,13 @@ class HomeView extends StatelessWidget {
             TextField(
               controller: friendEmailController,
               decoration: InputDecoration(
-                labelText: 'Email prijatelja',
+                labelText: 'Unesite email prijatelja',
                 border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue),
+                ),
+                hintText: 'primjer@example.com',
+                prefixIcon: Icon(Icons.email),
               ),
             ),
             SizedBox(height: 10),
@@ -38,12 +62,50 @@ class HomeView extends StatelessWidget {
                 String friendEmail = friendEmailController.text.trim();
                 controller.addFriend(friendEmail);
               },
-              child: Text('Dodaj prijatelja'),
+              style: ElevatedButton.styleFrom(
+                primary: Colors.transparent, // Postavi transparentnu pozadinu
+                padding: EdgeInsets.all(
+                    0), // Postavi padding na 0 kako bi se ispravno prikazao gradient
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                      8.0), // Opcionalno: dodaj zaobljenje rubova
+                ),
+                elevation: 0, // Ukloni sjenu
+              ),
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color.fromARGB(255, 240, 162, 88),
+                      Color.fromARGB(255, 210, 58, 152)
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    stops: [0.0, 1.2],
+                    tileMode: TileMode.clamp,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0), // Zaobljenje rubova
+                ),
+                child: Container(
+                  constraints: BoxConstraints(
+                      minWidth: 88.0,
+                      minHeight: 36.0), // Opcionalno: postavi dimenzije
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Dodaj prijatelja',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
             ),
             SizedBox(height: 20),
             Expanded(
               child: StreamBuilder<List<String>>(
-                stream: controller.getFriendsByEmail(authC.auth.currentUser!.email!),
+                stream: controller
+                    .getFriendsByEmail(authC.auth.currentUser!.email!),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
@@ -53,13 +115,35 @@ class HomeView extends StatelessWidget {
                     return Center(child: Text('Greška: ${snapshot.error}'));
                   }
 
-                  // Prikaz liste prijatelja
                   return ListView.builder(
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(snapshot.data![index]),
-                        // treba dodati go to chat room
+                      var friendEmail = snapshot.data![index];
+
+                      return Card(
+                        elevation: 3,
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        child: ListTile(
+                          title: Text(
+                            friendEmail,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 85, 82, 82)),
+                          ),
+                          trailing: Icon(Icons.arrow_forward),
+                          onTap: () async {
+                            String selectedFriendEmail = snapshot.data![index];
+
+                            String? chatId = await controller.getChatId(
+                              authC.auth.currentUser!.email!,
+                              selectedFriendEmail,
+                            );
+
+                            if (chatId!.isNotEmpty) {
+                              controller.openChat(chatId, selectedFriendEmail);
+                            } else {}
+                          },
+                        ),
                       );
                     },
                   );

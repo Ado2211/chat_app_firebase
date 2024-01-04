@@ -12,39 +12,41 @@ class HomeController extends GetxController {
   final Rx<List<String>> friendsList = Rx<List<String>>([]);
 
   Stream<List<String>> getFriendsByEmail(String userEmail) {
-  StreamController<List<String>> friendsStreamController = StreamController<List<String>>();
+    StreamController<List<String>> friendsStreamController =
+        StreamController<List<String>>();
 
-  _firestore
-      .collection('users')
-      .where('email', isEqualTo: userEmail)
-      .limit(1)
-      .snapshots()
-      .listen((snapshot) async {
-    if (snapshot.docs.isNotEmpty) {
-      final userId = snapshot.docs.first.id;
-      _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('friends')
-          .snapshots()
-          .listen((friendsSnapshot) {
-        final List<String> friendsEmails = [];
-        for (var friendDoc in friendsSnapshot.docs) {
-          final friendData = friendDoc.data();
-          final friendEmail = friendData['email'];
-          if (friendEmail != null) {
-            friendsEmails.add(friendEmail);
+    _firestore
+        .collection('users')
+        .where('email', isEqualTo: userEmail)
+        .limit(1)
+        .snapshots()
+        .listen((snapshot) async {
+      if (snapshot.docs.isNotEmpty) {
+        final userId = snapshot.docs.first.id;
+        _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('friends')
+            .snapshots()
+            .listen((friendsSnapshot) {
+          final List<String> friendsEmails = [];
+          for (var friendDoc in friendsSnapshot.docs) {
+            final friendData = friendDoc.data();
+            final friendEmail = friendData['email'];
+            if (friendEmail != null) {
+              friendsEmails.add(friendEmail);
+            }
           }
-        }
-        friendsStreamController.add(friendsEmails);
-      });
-    } else {
-      friendsStreamController.add([]); // Vraćamo praznu listu ako korisnik nije pronađen
-    }
-  });
+          friendsStreamController.add(friendsEmails);
+        });
+      } else {
+        friendsStreamController
+            .add([]); // Vraćamo praznu listu ako korisnik nije pronađen
+      }
+    });
 
-  return friendsStreamController.stream;
-}
+    return friendsStreamController.stream;
+  }
 
   Future<void> addFriend(String friendEmail) async {
     try {
@@ -66,8 +68,40 @@ class HomeController extends GetxController {
               .doc(friendUid)
               .set({'email': friendEmail});
 
-          if (snapshot.docs.isNotEmpty) {
-            // Emitiranje nove liste prijatelja
+          // Pronalaženje ili stvaranje chata između korisnika
+          DocumentReference currentUserChatRef = _firestore
+              .collection('users')
+              .doc(currentUser.uid)
+              .collection('chats')
+              .doc(friendEmail);
+
+          DocumentReference friendChatRef = _firestore
+              .collection('users')
+              .doc(friendUid)
+              .collection('chats')
+              .doc(currentUser.email);
+
+          bool currentUserChatExists = (await currentUserChatRef.get()).exists;
+          bool friendChatExists = (await friendChatRef.get()).exists;
+
+          String? chatId;
+
+          if (currentUserChatExists && friendChatExists) {
+            var currentUserChatData = (await currentUserChatRef.get()).data()
+                as Map<String, dynamic>?;
+            if (currentUserChatData != null) {
+              chatId = currentUserChatData['chatId'];
+            }
+          } else {
+            DocumentReference newChatRef = _firestore.collection('chats').doc();
+            chatId = newChatRef.id;
+
+            await newChatRef.set({
+              'participants': [currentUser.email, friendEmail],
+            });
+
+            await currentUserChatRef.set({'chatId': chatId});
+            await friendChatRef.set({'chatId': chatId});
           }
 
           Get.snackbar('Uspjeh', 'Prijatelj uspješno dodan');
@@ -80,31 +114,46 @@ class HomeController extends GetxController {
     }
   }
 
-  void goToChatRoom(String chat_id, String email, String friendEmail) async {
-    CollectionReference chats = _firestore.collection('chats');
-    CollectionReference users = _firestore.collection('users');
-
-    final updateStatusChat = await chats
-        .doc(chat_id)
-        .collection("chat")
-        .where("isRead", isEqualTo: false)
-        .where("posiljaoc", isEqualTo: email)
+ Future<String?> getChatId(String currentUserEmail, String friendEmail) async {
+  try {
+    DocumentSnapshot currentUserChatSnapshot = await _firestore
+        .collection('users')
+        .doc(currentUserEmail)
+        .collection('chats')
+        .doc(friendEmail)
         .get();
 
-    updateStatusChat.docs.forEach((element) async {
-      await chats
-          .doc(chat_id)
-          .collection("chat")
-          .doc(element.id)
-          .update({"isRead": true});
-    });
+    if (currentUserChatSnapshot.exists) {
+      return currentUserChatSnapshot.get('chatId');
+    } else {
+      // Kreirajte novi chat ako chat ne postoji
+      DocumentReference newChatRef = _firestore.collection('chats').doc();
+      String newChatId = newChatRef.id;
 
-    await users
-        .doc(email)
-        .collection("chats")
-        .doc(chat_id)
-        .update({"total_unread": 0});
+      // Postavite chatId za korisnika i prijatelja
+      await _firestore
+          .collection('users')
+          .doc(currentUserEmail)
+          .collection('chats')
+          .doc(friendEmail)
+          .set({'chatId': newChatId});
 
-    Get.to(ChatRoomView(chatId: chat_id, friendEmail: friendEmail));
+      await _firestore
+          .collection('users')
+          .doc(friendEmail)
+          .collection('chats')
+          .doc(currentUserEmail)
+          .set({'chatId': newChatId});
+
+      return newChatId;
+    }
+  } catch (e) {
+    print('Greška prilikom dohvatanja ili kreiranja chatId-a: $e');
+    return null;
+  }
+}
+
+  void openChat(String chatId, String friendEmail) {
+    Get.to(ChatRoomView(chatId: chatId, friendEmail: friendEmail));
   }
 }
