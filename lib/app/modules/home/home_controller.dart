@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:chat_app_firebase/app/modules/chat/chat_view.dart';
-import 'package:chat_app_firebase/app/routes/app_pages.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
@@ -11,43 +11,37 @@ class HomeController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Rx<List<String>> friendsList = Rx<List<String>>([]);
 
-  Stream<List<String>> getFriendsByEmail(String userEmail) {
-    StreamController<List<String>> friendsStreamController =
-        StreamController<List<String>>();
+  Stream<List<FriendInfo>> getFriendsByEmail(String userEmail) {
+  StreamController<List<FriendInfo>> friendsStreamController =
+      StreamController<List<FriendInfo>>();
 
-    _firestore
-        .collection('users')
-        .where('email', isEqualTo: userEmail)
-        .limit(1)
-        .snapshots()
-        .listen((snapshot) async {
-      if (snapshot.docs.isNotEmpty) {
-        final userId = snapshot.docs.first.id;
-        _firestore
-            .collection('users')
-            .doc(userId)
-            .collection('friends')
-            .snapshots()
-            .listen((friendsSnapshot) {
-          final List<String> friendsEmails = [];
-          for (var friendDoc in friendsSnapshot.docs) {
-            final friendData = friendDoc.data();
-            final friendEmail = friendData['email'];
-            if (friendEmail != null) {
-              friendsEmails.add(friendEmail);
-            }
-          }
-          friendsStreamController.add(friendsEmails);
-        });
+  _firestore
+      .collection('users')
+      .where('email', isEqualTo: userEmail)
+      .limit(1)
+      .snapshots()
+      .listen((snapshot) async {
+    if (snapshot.docs.isNotEmpty) {
+      
+      final userData = snapshot.docs.first.data();
+      final userEmail = userData['email'];
+      final username = userData['username'];
+
+      if (userEmail != null && username != null) {
+        List<FriendInfo> friendInfoList = [];
+        friendInfoList.add(FriendInfo(email: userEmail, username: username));
+        friendsStreamController.add(friendInfoList);
       } else {
-        friendsStreamController
-            .add([]); // Vraćamo praznu listu ako korisnik nije pronađen
+        friendsStreamController.add([]); // Dodajemo praznu listu ako nema podataka
       }
-    });
+    } else {
+      friendsStreamController.add([]); // Dodajemo praznu listu ako korisnik nije pronađen
+    }
+  });
 
-    return friendsStreamController.stream;
-  }
-
+  return friendsStreamController.stream;
+}
+    
   Future<void> addFriend(String friendEmail) async {
     try {
       User? currentUser = _auth.currentUser;
@@ -66,9 +60,9 @@ class HomeController extends GetxController {
               .doc(currentUser.uid)
               .collection('friends')
               .doc(friendUid)
-              .set({'email': friendEmail});
+              .set({'email': friendEmail,});
 
-          // Pronalaženje ili stvaranje chata između korisnika
+          // otvaranje chata između korisnika
           DocumentReference currentUserChatRef = _firestore
               .collection('users')
               .doc(currentUser.uid)
@@ -156,4 +150,11 @@ class HomeController extends GetxController {
   void openChat(String chatId, String friendEmail) {
     Get.to(ChatRoomView(chatId: chatId, friendEmail: friendEmail));
   }
+}
+
+class FriendInfo {
+  final String email;
+  final String username;
+
+  FriendInfo({required this.email, required this.username});
 }
