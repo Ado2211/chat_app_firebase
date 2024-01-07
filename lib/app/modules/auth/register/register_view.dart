@@ -10,8 +10,9 @@ class RegisterView extends GetView<RegisterController> {
 
   @override
   Widget build(BuildContext context) {
+    var nameControlller = TextEditingController();
     var emailControlller = TextEditingController();
-    var passwordControlller = TextEditingController();
+    var passwordController = TextEditingController();
     
 
     List images = ["g.png", "t.png", "f.png"];
@@ -48,6 +49,35 @@ class RegisterView extends GetView<RegisterController> {
                       height: 50,
                     ),
                    
+                   Container(
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                                blurRadius: 10,
+                                spreadRadius: 7,
+                                offset: Offset(1, 1),
+                                color: Colors.grey.withOpacity(0.2))
+                          ]),
+                      child: TextField(
+                        controller: nameControlller,
+                        style: TextStyle(fontSize: 14),
+                        decoration: InputDecoration(
+                          hintText: "Username",
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide:
+                                  BorderSide(color: Colors.white, width: 1.0)),
+                          enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide:
+                                  BorderSide(color: Colors.white, width: 1.0)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30)),
+                        ),
+                      ),
+                    ),
                    
                     Container(
                       decoration: BoxDecoration(
@@ -92,24 +122,39 @@ class RegisterView extends GetView<RegisterController> {
                                 offset: Offset(1, 1),
                                 color: Colors.grey.withOpacity(0.2))
                           ]),
-                      child: TextField(
-                        controller: passwordControlller,
-                        obscureText: true,
-                        style: TextStyle(fontSize: 14),
-                        decoration: InputDecoration(
-                          hintText: "Password",
-                          focusedBorder: OutlineInputBorder(
+                      child: Obx(() {
+                        return TextField(
+                          controller: passwordController,
+                          obscureText: controller.isObscure.value,
+                          style: TextStyle(fontSize: 14),
+                          decoration: InputDecoration(
+                            hintText: "Password",
+                            suffixIcon: GestureDetector(
+                              onTap: () {
+                                controller.toggleObscure();
+                              },
+                              child: Icon(
+                                controller.isObscure()
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(30),
                               borderSide:
-                                  BorderSide(color: Colors.white, width: 1.0)),
-                          enabledBorder: OutlineInputBorder(
+                                  BorderSide(color: Colors.white, width: 1.0),
+                            ),
+                            enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(30),
                               borderSide:
-                                  BorderSide(color: Colors.white, width: 1.0)),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30)),
-                        ),
-                      ),
+                                  BorderSide(color: Colors.white, width: 1.0),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                        );
+                      }),
                     ),
                     SizedBox(
                       height: 20,
@@ -124,7 +169,8 @@ class RegisterView extends GetView<RegisterController> {
                 onTap: () {
                   AuthController.instance.register(
                     emailControlller.text.trim(),
-                    passwordControlller.text.trim(),
+                    passwordController.text.trim(),
+                    nameControlller.text.trim(),
                   );
                 },
                 child: Container(
