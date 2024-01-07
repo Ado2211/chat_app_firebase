@@ -7,8 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../utils/clipper.dart';
 
-
-class LoginView extends GetView<LoginController>  {
+class LoginView extends GetView<LoginController> {
   const LoginView({Key? key}) : super(key: key);
 
   @override
@@ -95,24 +94,39 @@ class LoginView extends GetView<LoginController>  {
                                 offset: Offset(1, 1),
                                 color: Colors.grey.withOpacity(0.2))
                           ]),
-                      child: TextField(
-                        controller: passwordController,
-                        obscureText: true,
-                        style: TextStyle(fontSize: 14),
-                        decoration: InputDecoration(
-                          hintText: "Password",
-                          focusedBorder: OutlineInputBorder(
+                      child: Obx(() {
+                        return TextField(
+                          controller: passwordController,
+                          obscureText: controller.isObscure.value,
+                          style: TextStyle(fontSize: 14),
+                          decoration: InputDecoration(
+                            hintText: "Password",
+                            suffixIcon: GestureDetector(
+                              onTap: () {
+                                controller.toggleObscure();
+                              },
+                              child: Icon(
+                                controller.isObscure()
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(30),
                               borderSide:
-                                  BorderSide(color: Colors.white, width: 1.0)),
-                          enabledBorder: OutlineInputBorder(
+                                  BorderSide(color: Colors.white, width: 1.0),
+                            ),
+                            enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(30),
                               borderSide:
-                                  BorderSide(color: Colors.white, width: 1.0)),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30)),
-                        ),
-                      ),
+                                  BorderSide(color: Colors.white, width: 1.0),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                        );
+                      }),
                     ),
                     SizedBox(
                       height: 20,
@@ -139,7 +153,6 @@ class LoginView extends GetView<LoginController>  {
                 onTap: () {
                   AuthController.instance.login(emailController.text.trim(),
                       passwordController.text.trim());
-                  
                 },
                 child: Container(
                   width: w * 0.5,

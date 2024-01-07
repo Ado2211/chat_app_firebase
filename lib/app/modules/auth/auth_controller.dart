@@ -34,30 +34,29 @@ final FirebaseFirestore _firestore = FirebaseFirestore.instance;
     }
   }
 
- Future<void> register(String email, String password) async {
-    try {
-      UserCredential userCredential = await auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+ Future<void> register(String email, String password, String username) async {
+  try {
+    UserCredential userCredential = await auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-      if (userCredential.user != null) {
-  
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'email': email,
-         
-        });
+    if (userCredential.user != null) {
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'email': email,
+        'username': username, // Dodajemo ime korisnika u bazu
+      });
 
-        Get.snackbar('Uspjeh', 'Registracija uspješna');
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Greška',
-        'Greška prilikom registracije: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      Get.snackbar('Success', 'Registration successful');
     }
+  } catch (e) {
+    Get.snackbar(
+      'Error',
+      'Registration Error: $e',
+      snackPosition: SnackPosition.BOTTOM,
+    );
   }
+}
 
   void login(String email, password) async {
     try {
@@ -68,8 +67,8 @@ final FirebaseFirestore _firestore = FirebaseFirestore.instance;
       }
     } catch (e) {
       Get.snackbar(
-        'Greška',
-        'Greška prilikom registracije: $e',
+        'Error',
+        'Login Error: $e',
         snackPosition: SnackPosition.BOTTOM,
       );
     }
@@ -77,6 +76,6 @@ final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   void logOut() async {
     await auth.signOut();
-    Get.snackbar('Uspjeh', 'Registracija uspješna');
+    Get.snackbar('Succes', 'Logout Succes');
   }
 }

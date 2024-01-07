@@ -1,4 +1,5 @@
 import 'package:chat_app_firebase/app/modules/auth/auth_controller.dart';
+import 'package:chat_app_firebase/app/modules/auth/register/register_controller.dart';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -14,7 +15,7 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   Get.put(AuthController(), permanent: true);
-
+Get.put(RegisterController());
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
