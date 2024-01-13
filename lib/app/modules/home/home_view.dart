@@ -1,12 +1,15 @@
 import 'package:chat_app_firebase/app/modules/auth/auth_controller.dart';
 import 'package:chat_app_firebase/app/modules/home/home_controller.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get_connect/http/src/utils/utils.dart';
 
 class HomeView extends StatelessWidget {
   final authC = Get.find<AuthController>();
   final HomeController controller = Get.put(HomeController());
   final TextEditingController friendEmailController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -48,56 +51,53 @@ class HomeView extends StatelessWidget {
             // Existing UI components
             SizedBox(height: 20),
             Expanded(
-              child: StreamBuilder<List<FriendInfo>>(
+              child: StreamBuilder<List<Map<String, String>>>(
                 stream: controller
                     .getFriendsByEmail(authC.auth.currentUser!.email!),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('There are no friends added'));
+                    return Center(child: Text('Nema prijatelja.'));
                   } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return Center(child: Text('Greška: ${snapshot.error}'));
                   }
 
                   return ListView.builder(
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
-                      var friendInfo = snapshot.data![index];
+                      final friendData = snapshot.data![index];
+                      final username = friendData['username'];
+                      final friendEmail = friendData['email'];
 
-                      return ListTile(
-                        contentPadding: EdgeInsets.symmetric(vertical: 8),
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.grey,
-                          radius: 30,
-                          child: Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 40,
+                      return Card(
+                        elevation: 3,
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        child: ListTile(
+                          title: Text(
+                            username!,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 85, 82, 82),
+                            ),
                           ),
-                        ),
-                        title: Text(
-                          friendInfo.username,
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          friendInfo.email,
-                          style: TextStyle(fontWeight: FontWeight.normal),
-                        ),
-                        onTap: () async {
-                          String selectedFriendEmail = friendInfo.email;
+                          subtitle: Text(friendEmail!),
+                          trailing: Icon(Icons.arrow_forward),
+                          onTap: () async {
+                            String selectedFriendEmail = friendEmail;
 
-                          String? chatId = await controller.getChatId(
-                            authC.auth.currentUser!.email!,
-                            selectedFriendEmail,
-                          );
+                            String? chatId = await controller.getChatId(
+                              authC.auth.currentUser!.email!,
+                              selectedFriendEmail,
+                            );
 
-                          if (chatId!.isNotEmpty) {
-                            controller.openChat(chatId, selectedFriendEmail);
-                          } else {
-                            // Logic if chatId is not found or there is no chat with that friend
-                          }
-                        },
+                            if (chatId!.isNotEmpty) {
+                              controller.openChat(chatId, selectedFriendEmail);
+                            } else {
+                              // Handle the case when chatId is empty
+                            }
+                          },
+                        ),
                       );
                     },
                   );
@@ -108,66 +108,67 @@ class HomeView extends StatelessWidget {
         ),
       ),
       floatingActionButton: ClipRRect(
-  borderRadius: BorderRadius.circular(20.0),
-  child: Container(
-    margin: EdgeInsets.only(bottom: 40.0),
-    width: 200.0,
-    height: 50.0,
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          Color.fromARGB(255, 240, 162, 88),
-          Color.fromARGB(255, 210, 58, 152),
-        ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        stops: [0.0, 1.0],
-        tileMode: TileMode.clamp,
-      ),
-      borderRadius: BorderRadius.circular(20.0),
-    ),
-    child: TextButton.icon(
-      onPressed: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Add Friend'),
-              content: TextField(
-                controller: friendEmailController,
-                decoration: InputDecoration(
-                  labelText: 'Enter a friend\'s email',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              actions: [
-                ElevatedButton(
-                  onPressed: () {
-                    String friendEmail = friendEmailController.text.trim();
-                    controller.addFriend(friendEmail);
-                    friendEmailController.clear();
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Add'),
-                ),
+        borderRadius: BorderRadius.circular(20.0),
+        child: Container(
+          margin: EdgeInsets.only(bottom: 40.0),
+          width: 200.0,
+          height: 50.0,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 240, 162, 88),
+                Color.fromARGB(255, 210, 58, 152),
               ],
-            );
-          },
-        );
-      },
-      icon: Icon(
-        Icons.person_add,
-        color: Colors.white, // Postavljanje boje ikone
-      ),
-      label: Text(
-        'Add Friend',
-        style: TextStyle(
-          color: Colors.white, // Postavljanje boje teksta
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: [0.0, 1.0],
+              tileMode: TileMode.clamp,
+            ),
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          child: TextButton.icon(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Add Friend'),
+                    content: TextField(
+                      controller: friendEmailController,
+                      decoration: InputDecoration(
+                        labelText: 'Enter a friend\'s email',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    actions: [
+                      ElevatedButton(
+                        onPressed: () {
+                          String friendEmail =
+                              friendEmailController.text.trim();
+                          controller.addFriend(friendEmail);
+                          friendEmailController.clear();
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Add'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            icon: Icon(
+              Icons.person_add,
+              color: Colors.white, // Postavljanje boje ikone
+            ),
+            label: Text(
+              'Add Friend',
+              style: TextStyle(
+                color: Colors.white, // Postavljanje boje teksta
+              ),
+            ),
+          ),
         ),
       ),
-    ),
-  ),
-),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
