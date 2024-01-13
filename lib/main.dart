@@ -15,7 +15,7 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   Get.put(AuthController(), permanent: true);
-Get.put(RegisterController());
+  Get.put(RegisterController());
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

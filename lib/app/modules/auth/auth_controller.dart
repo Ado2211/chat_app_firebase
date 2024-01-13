@@ -44,7 +44,7 @@ final FirebaseFirestore _firestore = FirebaseFirestore.instance;
     if (userCredential.user != null) {
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
-        'username': username, // Dodajemo ime korisnika u bazu
+        'username': username, 
       });
 
       Get.snackbar('Success', 'Registration successful');
