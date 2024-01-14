@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:chat_app_firebase/app/modules/auth/auth_controller.dart';
 import 'package:chat_app_firebase/app/modules/chat/chat_view.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -7,48 +8,54 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
 class HomeController extends GetxController {
+  final authC = Get.find<AuthController>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Rx<List<String>> friendsList = Rx<List<String>>([]);
 
-  Stream<Map<String, dynamic>?> getLastMessage(String chatId) {
-  CollectionReference messagesCollection = FirebaseFirestore.instance.collection('chats').doc(chatId).collection('chat');
+  Future<String?> getLatestMessage(String chatId) async {
+    try {
+      QuerySnapshot<Object?> snapshot = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .collection('chat')
+          .orderBy('timestamp', descending: true)
+          .limit(1)
+          .get();
 
-  return messagesCollection
-      .orderBy('timestamp', descending: true)
-      .limit(1)
-      .snapshots()
-      .map<Map<String, dynamic>?>((QuerySnapshot snapshot) {
-        if (snapshot.docs.isNotEmpty) {
-          final lastMessageData = snapshot.docs.first.data() as Map<String, dynamic>;
-          return {
-            'sender': lastMessageData['sender'] ?? '',
-            'text': lastMessageData['text'] ?? '',
-          };
-        } else {
-          return null;
-        }
-      });
-}
+      if (snapshot.docs.isNotEmpty) {
+        final lastMessageData =
+            snapshot.docs.first.data() as Map<String, dynamic>;
+        return lastMessageData['message'];
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Greška prilikom dohvaćanja zadnje poruke: $e');
+      return null;
+    }
+  }
 
   Stream<List<Map<String, String>>> getFriendsByEmail(String userEmail) {
     StreamController<List<Map<String, String>>> friendsStreamController =
         StreamController<List<Map<String, String>>>();
 
-    _firestore
-        .collection('users')
-        .where('email', isEqualTo: userEmail)
-        .snapshots()
-        .listen((snapshot) async {
-      if (snapshot.docs.isNotEmpty) {
-        final userId = snapshot.docs.first.id;
-
-        _firestore
+    void refreshData() async {
+      if (!friendsStreamController.isClosed) {
+        final snapshot = await _firestore
             .collection('users')
-            .doc(userId)
-            .collection('friends')
-            .snapshots()
-            .listen((friendsSnapshot) async {
+            .where('email', isEqualTo: userEmail)
+            .get();
+
+        if (snapshot.docs.isNotEmpty) {
+          final userId = snapshot.docs.first.id;
+
+          final friendsSnapshot = await _firestore
+              .collection('users')
+              .doc(userId)
+              .collection('friends')
+              .get();
+
           final List<Map<String, String>> friendsData = [];
 
           for (var friendDoc in friendsSnapshot.docs) {
@@ -56,26 +63,38 @@ class HomeController extends GetxController {
             final friendEmail = friendData['email'];
 
             if (friendEmail != null) {
-              // Dohvati podatke o prijatelju, ne koristi podatke o trenutnom korisniku
               final friendUserData = await getUserDataByEmail(friendEmail);
 
               if (friendUserData != null) {
                 final friendUsername = friendUserData['username'];
+                final chatId = await getChatId(
+                  authC.auth.currentUser!.email!,
+                  friendEmail,
+                );
 
-                friendsData.add({
-                  'email': friendEmail,
-                  'username': friendUsername,
-                });
+                if (chatId != null) {
+                  final latestMessage = await getLatestMessage(chatId);
+
+                  friendsData.add({
+                    'email': friendEmail,
+                    'username': friendUsername,
+                    'message': latestMessage ?? '',
+                  });
+                }
               }
             }
           }
 
           friendsStreamController.add(friendsData);
-        });
-      } else {
-        friendsStreamController.add([]);
+        } else {
+          friendsStreamController.add([]);
+        }
       }
-    });
+    }
+
+    Stream.periodic(const Duration(seconds: 10)).listen((_) => refreshData());
+
+    refreshData();
 
     return friendsStreamController.stream;
   }
