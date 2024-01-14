@@ -8,7 +8,6 @@ import 'app/routes/app_pages.dart';
 import 'app/utils/firebase_options.dart';
 import 'package:get/get.dart';
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -33,11 +32,10 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.red,
+        fontFamily: 'Lato-Regular',
       ),
       initialRoute: Routes.HOME,
       getPages: AppPages.routes,
-      
     );
   }
 }

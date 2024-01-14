@@ -1,45 +1,73 @@
 import 'package:chat_app_firebase/app/modules/auth/auth_controller.dart';
 import 'package:chat_app_firebase/app/modules/home/home_controller.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
 
 class HomeView extends StatelessWidget {
   final authC = Get.find<AuthController>();
   final HomeController controller = Get.put(HomeController());
   final TextEditingController friendEmailController = TextEditingController();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 130,
         automaticallyImplyLeading: false,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Chats'),
-            IconButton(
-              icon: Icon(Icons.exit_to_app),
-              onPressed: () {
-                authC.logOut();
-              },
-            ),
-          ],
+        shape: ContinuousRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.elliptical(90, 90),
+            bottomRight: Radius.elliptical(90, 90),
+          ),
         ),
         flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color.fromARGB(255, 240, 162, 88),
-                Color.fromARGB(255, 210, 58, 152),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              stops: [0.0, 1.2],
-              tileMode: TileMode.clamp,
-            ),
+          padding: EdgeInsets.fromLTRB(16, 70, 16, 56),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(
+                  FontAwesomeIcons.equals,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                'MESSAGES',
+                style: TextStyle(
+                  fontFamily: 'Lato-Regular', 
+                  fontSize: 24,
+                  color: Colors.white,
+                  letterSpacing:
+                      2.5, // Prilagodi vrijednost kako bi postigao željeni razmak
+                ),
+              ),
+              PopupMenuButton(
+                icon: Icon(
+                  Icons.more_vert,
+                  color: Colors.white,
+                ),
+                itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+                  const PopupMenuItem(
+                    value: 'profile',
+                    child: Text('Profile'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'logout',
+                    child: Text('Log Out'),
+                  ),
+                ],
+                onSelected: (value) {
+                  if (value == 'profile') {
+                    // Logika za otvaranje ekrana profila
+                  } else if (value == 'logout') {
+                    authC.logOut();
+                  }
+                },
+              ),
+            ],
           ),
         ),
       ),
@@ -69,6 +97,7 @@ class HomeView extends StatelessWidget {
                       final friendData = snapshot.data![index];
                       final username = friendData['username'];
                       final friendEmail = friendData['email'];
+                      final latestMessage = friendData['message'];
 
                       return Card(
                         elevation: 3,
@@ -81,10 +110,10 @@ class HomeView extends StatelessWidget {
                               color: Color.fromARGB(255, 85, 82, 82),
                             ),
                           ),
-                          subtitle: Text(friendEmail!),
+                          subtitle: Text(latestMessage!),
                           trailing: Icon(Icons.arrow_forward),
                           onTap: () async {
-                            String selectedFriendEmail = friendEmail;
+                            String selectedFriendEmail = friendEmail!;
 
                             String? chatId = await controller.getChatId(
                               authC.auth.currentUser!.email!,
