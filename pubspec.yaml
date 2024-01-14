@@ -38,6 +38,8 @@ dependencies:
   cloud_firestore: ^4.13.2
   intl: ^0.19.0
   emoji_picker_flutter: ^1.6.3
+  rxdart: ^0.27.7
+  font_awesome_flutter: ^9.1.0
   
 
 
@@ -67,6 +69,10 @@ flutter:
   assets:
    - assets/img/
   
+  fonts:
+    - family: Lato-Regular # Naziv fonta koji će se koristiti u Flutter kodu
+      fonts:
+        - asset: assets/fonts/Lato-Regular.ttf
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
