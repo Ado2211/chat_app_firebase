@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'Lato-Regular',
       ),
-      initialRoute: Routes.HOME,
+      initialRoute: Routes.LOGIN,
       getPages: AppPages.routes,
     );
   }

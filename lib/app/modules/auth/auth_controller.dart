@@ -11,7 +11,7 @@ import 'package:chat_app_firebase/app/models/users_model.dart';
 class AuthController extends GetxController {
   static AuthController instance = Get.find();
 
-  late Rxn<User?> _user;
+  late Rx<User?> _user;
  final FirebaseAuth auth = FirebaseAuth.instance;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
  
@@ -19,13 +19,14 @@ final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   @override
   void onReady() {
     super.onReady();
-    _user = Rxn<User?>(auth.currentUser);
+    _user = Rx<User?>(auth.currentUser);
 
     _user.bindStream(auth.userChanges());
     ever(_user, _initialScreen);
   }
 
   _initialScreen(User? user) {
+    // ignore: unnecessary_null_comparison
     if (user == null) {
       print("login page");
       Get.toNamed(Routes.LOGIN);
