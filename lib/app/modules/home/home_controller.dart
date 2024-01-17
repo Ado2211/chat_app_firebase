@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:chat_app_firebase/app/modules/auth/auth_controller.dart';
 import 'package:chat_app_firebase/app/modules/chat/chat_view.dart';
-
+import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
@@ -32,6 +32,30 @@ class HomeController extends GetxController {
       }
     } catch (e) {
       print('Greška prilikom dohvaćanja zadnje poruke: $e');
+      return null;
+    }
+  }
+
+  Future<DateTime?> getLatestMessageTimestamp(String chatId) async {
+    try {
+      QuerySnapshot<Object?> snapshot = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .collection('chat')
+          .orderBy('timestamp', descending: true)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        final lastMessageData =
+            snapshot.docs.first.data() as Map<String, dynamic>;
+        final timestamp = lastMessageData['timestamp'] as Timestamp;
+        return timestamp.toDate();
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Greška prilikom dohvaćanja vremena zadnje poruke: $e');
       return null;
     }
   }
@@ -74,12 +98,28 @@ class HomeController extends GetxController {
 
                 if (chatId != null) {
                   final latestMessage = await getLatestMessage(chatId);
+                  final latestMessageTimestamp =
+                      await getLatestMessageTimestamp(chatId);
 
-                  friendsData.add({
-                    'email': friendEmail,
-                    'username': friendUsername,
-                    'message': latestMessage ?? '',
-                  });
+                  if (latestMessageTimestamp != null) {
+                    final formattedTime =
+                        DateFormat('HH:mm').format(latestMessageTimestamp);
+
+                    friendsData.add({
+                      'email': friendEmail,
+                      'username': friendUsername,
+                      'message': latestMessage ?? '',
+                      'timestamp': formattedTime,
+                    });
+                  } else {
+                    final defaultTime = '';
+                    friendsData.add({
+                      'email': friendEmail,
+                      'username': friendUsername,
+                      'message': latestMessage ?? '',
+                      'timestamp': defaultTime,
+                    });
+                  }
                 }
               }
             }
@@ -92,7 +132,7 @@ class HomeController extends GetxController {
       }
     }
 
-    Stream.periodic(const Duration(seconds: 10)).listen((_) => refreshData());
+    Stream.periodic(const Duration(seconds: 3)).listen((_) => refreshData());
 
     refreshData();
 
@@ -187,7 +227,7 @@ class HomeController extends GetxController {
   }
 
   void openChat(String chatId, String friendEmail) {
-    Get.to(ChatRoomView(chatId: chatId, friendEmail: friendEmail));
+    Get.to(()=> ChatRoomView(chatId: chatId, friendEmail: friendEmail));
   }
 }
 
