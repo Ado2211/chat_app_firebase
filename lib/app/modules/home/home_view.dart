@@ -14,16 +14,8 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        elevation: 15,
-        shadowColor: Color.fromARGB(255, 52, 75, 226),
         toolbarHeight: 130,
         automaticallyImplyLeading: false,
-        shape: ContinuousRectangleBorder(
-          borderRadius: BorderRadius.only(
-            bottomLeft: Radius.elliptical(130, 70),
-            bottomRight: Radius.elliptical(70, 130),
-          ),
-        ),
         flexibleSpace: Container(
           padding: EdgeInsets.fromLTRB(16, 70, 16, 56),
           decoration: BoxDecoration(
@@ -37,7 +29,17 @@ class HomeView extends StatelessWidget {
               stops: [0.0, 1.0],
               tileMode: TileMode.clamp,
             ),
-            borderRadius: BorderRadius.circular(20.0),
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(40),
+              bottomRight: Radius.circular(40),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Color.fromARGB(255, 4, 16, 120).withOpacity(0.7),
+                offset: Offset(0, 5),
+                blurRadius: 40,
+              ),
+            ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -58,37 +60,34 @@ class HomeView extends StatelessWidget {
                   letterSpacing: 2.5,
                 ),
               ),
-              
               PopupMenuButton(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
                 child: Container(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                        15), 
-                    child: Image.asset(
-                      'assets/img/profile3.png',
-                      width: 40, 
-                      height: 40, 
-                   
-                    ),
+                  child: Icon(
+                    Icons.person,
+                    size: 40,
                   ),
                 ),
                 itemBuilder: (BuildContext context) => <PopupMenuEntry>[
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'profile',
                     child: Text('Profile'),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'logout',
                     child: Text('Log Out'),
                   ),
                 ],
                 onSelected: (value) {
                   if (value == 'profile') {
+                    // Logika za opciju 'Profile'
                   } else if (value == 'logout') {
                     authC.logOut();
                   }
                 },
-              ),
+              )
             ],
           ),
         ),
@@ -98,7 +97,6 @@ class HomeView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            
             SizedBox(height: 20),
             Expanded(
               child: StreamBuilder<List<Map<String, String>>>(
@@ -124,20 +122,12 @@ class HomeView extends StatelessWidget {
 
                       return ListTile(
                         contentPadding:
-                            EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                            EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                         leading: Padding(
-                          padding: EdgeInsets.only(right: 8, left: 8),
-                          child: Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Color.fromARGB(255, 115, 148, 237),
-                              borderRadius: BorderRadius.circular(20),
-                              image: DecorationImage(
-                                image: AssetImage('assets/img/profile3.jpeg'),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+                          padding: EdgeInsets.only(left: 3),
+                          child: Icon(
+                            Icons.person,
+                            size: 60,
                           ),
                         ),
                         title: Text(
@@ -169,7 +159,8 @@ class HomeView extends StatelessWidget {
                           );
 
                           if (chatId!.isNotEmpty) {
-                            controller.openChat(chatId, selectedFriendEmail);
+                            controller.openChat(
+                                chatId, selectedFriendEmail, username);
                           } else {}
                           ;
                         },
@@ -189,13 +180,9 @@ class HomeView extends StatelessWidget {
         currentIndex: 1,
         selectedItemColor: Colors.black54,
         onTap: (index) {
-    
           if (index == 0) {
-  
           } else if (index == 1) {
-   
           } else if (index == 2) {
-            
             showDialog(
               context: context,
               builder: (BuildContext context) {
@@ -233,13 +220,11 @@ class HomeView extends StatelessWidget {
                         TextField(
                           controller: friendEmailController,
                           style: TextStyle(
-                              color: const Color.fromARGB(255, 67, 67,
-                                  67)), 
+                              color: const Color.fromARGB(255, 67, 67, 67)),
                           decoration: InputDecoration(
                             hintText: 'Enter a friend\'s email',
                             hintStyle: TextStyle(
-                                color: Color.fromARGB(255, 160, 181,
-                                    239)), 
+                                color: Color.fromARGB(255, 160, 181, 239)),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(30),
                             ),
@@ -249,8 +234,7 @@ class HomeView extends StatelessWidget {
                               borderRadius: BorderRadius.circular(30),
                             ),
                             labelStyle: TextStyle(
-                                color: Color.fromARGB(255, 68, 114,
-                                    240)), 
+                                color: Color.fromARGB(255, 68, 114, 240)),
                           ),
                         ),
                         SizedBox(height: 26.0),
@@ -271,8 +255,7 @@ class HomeView extends StatelessWidget {
                           child: Text(
                             'Add',
                             style: TextStyle(
-                              color:
-                                  Colors.white, 
+                              color: Colors.white,
                             ),
                           ),
                         ),
@@ -283,10 +266,7 @@ class HomeView extends StatelessWidget {
               },
             );
           } else if (index == 3) {
-          
-          } else if (index == 4) {
-           
-          }
+          } else if (index == 4) {}
         },
         items: [
           BottomNavigationBarItem(
@@ -304,8 +284,8 @@ class HomeView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20.0),
                   color: Color.fromARGB(255, 94, 153, 241),
                 ),
-                width: 50, 
-                height: 50, 
+                width: 50,
+                height: 50,
                 child: Center(
                   child: Icon(
                     Icons.add,

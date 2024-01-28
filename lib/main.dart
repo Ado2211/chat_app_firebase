@@ -33,6 +33,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         fontFamily: 'Lato-Regular',
+        
       ),
       initialRoute: Routes.LOGIN,
       getPages: AppPages.routes,

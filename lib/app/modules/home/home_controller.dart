@@ -226,8 +226,8 @@ class HomeController extends GetxController {
     }
   }
 
-  void openChat(String chatId, String friendEmail) {
-    Get.to(()=> ChatRoomView(chatId: chatId, friendEmail: friendEmail));
+  void openChat(String chatId, String friendEmail, String username) {
+    Get.to(()=> ChatRoomView(chatId: chatId, friendEmail: friendEmail,username: username, ));
   }
 }
 
