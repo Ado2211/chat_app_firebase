@@ -7,31 +7,37 @@ class MyWaveClipper extends StatelessWidget {
         body: Container(
             child: Stack(
       children: <Widget>[
-        //stack overlaps widgets
+       
         Opacity(
-          //semi red clippath with more height and with 0.5 opacity
+    
           opacity: 0.5,
           child: ClipPath(
-            clipper: WaveClipper(), //set our custom wave clipper
+            clipper: WaveClipper(), 
             child: Container(
-              color: Colors.deepOrangeAccent,
+              color: const Color.fromARGB(255, 64, 102, 255),
               height: 200,
             ),
           ),
         ),
 
         ClipPath(
-          //upper clippath with less height
-          clipper: WaveClipper(), //set our custom wave clipper.
+         
+          clipper: WaveClipper(), 
           child: Container(
+            height: 180,
             padding: EdgeInsets.only(bottom: 50),
             decoration: BoxDecoration(
-              image: DecorationImage(
-                  image: AssetImage("assets/img/loginimg.jpg"),
-                  fit: BoxFit.cover),
+              gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 68, 114, 240),
+                Color.fromARGB(255, 135, 162, 237),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: [0.0, 1.0],
+              tileMode: TileMode.clamp,
             ),
-            height: 180,
-            alignment: Alignment.center,
+            )
           ),
         ),
       ],

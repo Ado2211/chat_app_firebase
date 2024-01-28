@@ -6,7 +6,10 @@ import 'package:get/get.dart';
 import '../../../utils/clipper.dart';
 
 class RegisterView extends GetView<RegisterController> {
-  const RegisterView({Key? key}) : super(key: key);
+  RegisterView({Key? key}) : super(key: key);
+  final FocusNode _focusNode1 = FocusNode();
+  final FocusNode _focusNode2 = FocusNode();
+  final FocusNode _focusNode3 = FocusNode();
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +66,7 @@ class RegisterView extends GetView<RegisterController> {
                                   color: Colors.grey.withOpacity(0.2))
                             ]),
                         child: TextField(
+                          focusNode: _focusNode3,
                           controller: nameControlller,
                           style: TextStyle(fontSize: 14),
                           decoration: InputDecoration(
@@ -95,6 +99,7 @@ class RegisterView extends GetView<RegisterController> {
                                   color: Colors.grey.withOpacity(0.2))
                             ]),
                         child: TextField(
+                          focusNode: _focusNode1,
                           keyboardType: TextInputType.emailAddress,
                           controller: emailControlller,
                           style: TextStyle(fontSize: 14),
@@ -129,6 +134,7 @@ class RegisterView extends GetView<RegisterController> {
                             ]),
                         child: Obx(() {
                           return TextField(
+                            focusNode: _focusNode2,
                             controller: passwordController,
                             obscureText: controller.isObscure.value,
                             style: TextStyle(fontSize: 14),
@@ -183,17 +189,23 @@ class RegisterView extends GetView<RegisterController> {
                     height: h * 0.08,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(30),
-                      image: DecorationImage(
-                          image: AssetImage("assets/img/loginbtn.png"),
-                          fit: BoxFit.cover),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color.fromARGB(255, 68, 114, 240),
+                          Color.fromARGB(255, 135, 162, 237),
+                        ], // Dodaj boje koje želiš u gradientu
+                      ),
                     ),
                     child: Center(
                       child: Text(
                         "Sign up",
                         style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
