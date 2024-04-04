@@ -4,7 +4,10 @@ A Flutter-based chat application powered by Firebase and managed using GetX stat
 
 ## Screenshots
 
-![Screenshot](https://github.com/Ado2211/chat_app_firebase/blob/main/Screenshot_2024-04-04-01-16-20-843_com.example.chat_app_firebase.jpg)
+
+<p align="center">
+  <img src="https://github.com/Ado2211/chat_app_firebase/blob/main/Screenshot_2024-04-04-01-16-20-843_com.example.chat_app_firebase.jpg" alt="Screenshot" height="400">
+</p>
 
 ## Features
 
